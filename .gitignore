@@ -1,0 +1,4 @@
+/search-engine-hw1/INPUT_DIR/
+*/out/
+*.DS_Store
+*.idea/
