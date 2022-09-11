@@ -23,7 +23,7 @@ public class QryEval {
 
   private static final String USAGE =
     "Usage:  java QryEval paramFile\n\n";
-
+  private static Map<String, String> parameters;
   //  --------------- Methods ---------------------------------------
 
   /**
@@ -48,7 +48,7 @@ public class QryEval {
       throw new IllegalArgumentException (USAGE);
     }
 
-    Map<String, String> parameters = readParameterFile (args[0]);
+    parameters = readParameterFile (args[0]);
 
     //  Open the index and initialize the retrieval model.
 
@@ -87,9 +87,10 @@ public class QryEval {
     }
 
     //  STUDENTS::  Add new retrieval models here.
-
+    else if (modelString.equals("rankedboolean")) {
+      model = new RetrievalModelRankedBoolean();
+    }
     else {
-
       throw new IllegalArgumentException
         ("Unknown retrieval model " + parameters.get("retrievalAlgorithm"));
     }
@@ -189,14 +190,67 @@ public class QryEval {
         String query = pair[1];
         ScoreList results = processQuery(query, model);
         if (results != null) {
-          printResults(qid, results);
-          System.out.println();
+          int limit = Integer.parseInt(parameters.get("trecEvalOutputLength"));
+          exportResult(results, limit);
+//          printResults(qid, results);
+//          System.out.println();
         }
       }
     } catch (IOException ex) {
       ex.printStackTrace();
     } finally {
       input.close();
+    }
+  }
+
+
+  private static class Score {
+    private String docid;
+    private double score;
+
+    public Score(String docid, double score) {
+      this.docid = docid;
+      this.score = score;
+    }
+    @Override
+    public String toString() {
+      return "docId: " + this.docid + " score: " + this.score;
+    }
+  }
+
+
+  static void exportResult(ScoreList result, int limit) throws IOException {
+    PriorityQueue<Score> pq = new PriorityQueue<>(new Comparator<Score>() {
+      @Override
+      public int compare(Score o1, Score o2) {
+        if (o1.score == o2.score)
+        return o2.docid.compareTo(o1.docid);
+        return Double.compare(o2.score, o1.score);
+      }
+    });
+
+    for (int i = 0; i < limit; i++) {
+      String docId = Idx.getExternalDocid(result.getDocid(i));
+      double score = result.getDocidScore(i);
+      Score curr = new Score(docId, score);
+      pq.offer(curr);
+      if (pq.size() > limit) {
+        pq.poll();
+      }
+    }
+
+    int idx = 1;
+    String[] output = new String[limit];
+    while (!pq.isEmpty()) {
+      Score score = pq.poll();
+      String s = "22 " + "Q0 " + score.docid + " " + (limit - idx) + " " + score.score + " 2022/09/11";
+
+      output[limit - idx] = s;
+      idx ++;
+    }
+
+    for (int i = 0; i < limit; i++) {
+      System.out.println(output[i]);
     }
   }
 
