@@ -502,8 +502,6 @@ public class InspectIndex {
 	        int docid = context.docBase + postings.docID();
 	        System.out.println ("\tdocid: " + docid);
 		int tf = postings.freq();
-		System.out.println("\ttf: " + tf);
-		System.out.print("\tPositions: ");
 
 		for (int j=0; j<tf; j++) {
 		    int pos = postings.nextPosition();

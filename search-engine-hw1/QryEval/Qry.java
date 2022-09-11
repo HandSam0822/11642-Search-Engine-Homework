@@ -328,10 +328,8 @@ public abstract class Qry {
 
     for (int i=0; i<this.args.size(); i++) {
       Qry q_i = this.args.get(i);
-      System.out.println("i: " + i + " " + q_i);
       if (q_i.docIteratorHasMatch (r)) {
         int q_iDocid = q_i.docIteratorGetMatch ();
-        System.out.println("q_iDocid: " + q_iDocid);
         if ((minDocid > q_iDocid) ||
             (minDocid == Qry.INVALID_DOCID)) {
           minDocid = q_iDocid;

@@ -174,7 +174,6 @@ public abstract class QryIop extends Qry {
   public void initialize(RetrievalModel r) throws IOException {
 
     //  Initialize the query arguments (if any).
-    System.out.println("init here");
     for (Qry q_i: this.args) {
       ((QryIop) q_i).initialize (r);
     }

@@ -179,8 +179,6 @@ public class InvList {
    *  @return The internal document id.
    */
   public int getDocid(int docid) {
-    System.out.println("tf: " + this.postings.get(docid).tf);
-    System.out.println("positions size: " + this.postings.get(docid).positions.size());
     return this.postings.get(docid).docid;
   }
 

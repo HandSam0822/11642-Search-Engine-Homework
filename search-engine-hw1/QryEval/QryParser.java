@@ -95,6 +95,8 @@ public class QryParser {
 
       //  STUDENTS:: 
       //  Add new query operators here.
+      case "#and":
+        operator = new QrySopOr();
 
       default:
 	syntaxError ("Unknown query operator " + operatorName);

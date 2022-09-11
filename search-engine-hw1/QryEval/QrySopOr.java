@@ -32,6 +32,9 @@ public class QrySopOr extends QrySop {
 
     //  STUDENTS::
     //  Add support for other retrieval models here.
+    else if (r instanceof RetrievalModelRankedBoolean) {
+      return this.getScoreRankedBoolean (r);
+    }
 
     else {
       throw new IllegalArgumentException
@@ -57,7 +60,6 @@ public class QrySopOr extends QrySop {
     //  method uses a more general solution.  OR takes the maximum
     //  of the scores from its children query nodes.
 
-    double score = 0.0;
     int docid = this.docIteratorGetMatch ();
 
     for (int i=0; i<this.args.size(); i++) {
@@ -74,6 +76,31 @@ public class QrySopOr extends QrySop {
 
       if (q_i.docIteratorHasMatch (r) &&
           (q_i.docIteratorGetMatch () == docid)) {
+        return 1.0;
+      }
+    }
+
+    return 0.0;
+  }
+
+  private double getScoreRankedBoolean (RetrievalModel r) throws IOException {
+    double score = 0.0;
+    int docid = this.docIteratorGetMatch ();
+
+    for (int i=0; i<this.args.size(); i++) {
+
+      //  Java knows that the i'th query argument is a Qry object, but
+      //  it does not know what type.  We know that OR operators can
+      //  only have QrySop objects as children.  Cast the i'th query
+      //  argument to QrySop so that we can call its getScore method.
+
+      QrySop q_i = (QrySop) this.args.get(i);
+
+      //  If the i'th query argument matches this document, update the
+      //  score.
+
+      if (q_i.docIteratorHasMatch (r) &&
+              (q_i.docIteratorGetMatch () == docid)) {
         score = Math.max (score, q_i.getScore (r));
       }
     }

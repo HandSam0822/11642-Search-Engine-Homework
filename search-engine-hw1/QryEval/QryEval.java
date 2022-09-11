@@ -188,10 +188,10 @@ public class QryEval {
         String qid = pair[0];
         String query = pair[1];
         ScoreList results = processQuery(query, model);
-//        if (results != null) {
-//          printResults(qid, results);
-//          System.out.println();
-//        }
+        if (results != null) {
+          printResults(qid, results);
+          System.out.println();
+        }
       }
     } catch (IOException ex) {
       ex.printStackTrace();
@@ -216,8 +216,6 @@ public class QryEval {
    * @throws IOException Error accessing the Lucene index.
    */
   static void printResults(String queryName, ScoreList result) throws IOException {
-
-    System.out.println(queryName + ":  ");
     if (result.size() < 1) {
       System.out.println("\tNo results.");
     } else {
