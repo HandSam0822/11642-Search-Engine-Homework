@@ -5,6 +5,8 @@
  *  Compatible with Lucene 8.1.1.
  */
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 import org.apache.lucene.index.*;
@@ -193,7 +195,7 @@ public class QryEval {
           int limit = Integer.parseInt(parameters.get("trecEvalOutputLength"));
           exportResult(results, limit);
 //          printResults(qid, results);
-//          System.out.println();
+          System.out.println();
         }
       }
     } catch (IOException ex) {
@@ -220,16 +222,14 @@ public class QryEval {
 
 
   static void exportResult(ScoreList result, int limit) throws IOException {
-    PriorityQueue<Score> pq = new PriorityQueue<>(new Comparator<Score>() {
-      @Override
-      public int compare(Score o1, Score o2) {
-        if (o1.score == o2.score)
+    PriorityQueue<Score> pq = new PriorityQueue<>((o1, o2) -> {
+      if (Double.compare(o1.score, o2.score) == 0) {
         return o2.docid.compareTo(o1.docid);
-        return Double.compare(o2.score, o1.score);
       }
+      return Double.compare(o1.score, o2.score);
     });
 
-    for (int i = 0; i < limit; i++) {
+    for (int i = 0; i < result.size(); i++) {
       String docId = Idx.getExternalDocid(result.getDocid(i));
       double score = result.getDocidScore(i);
       Score curr = new Score(docId, score);
@@ -241,17 +241,36 @@ public class QryEval {
 
     int idx = 1;
     String[] output = new String[limit];
+    System.out.println(pq.size());
     while (!pq.isEmpty()) {
       Score score = pq.poll();
-      String s = "22 " + "Q0 " + score.docid + " " + (limit - idx) + " " + score.score + " 2022/09/11";
-
+      String s = "22 " + "Q0 " + score.docid + " " + (limit - idx + 1) + " " + score.score + " 2022/09/11";
       output[limit - idx] = s;
       idx ++;
     }
 
-    for (int i = 0; i < limit; i++) {
-      System.out.println(output[i]);
+    try {
+      FileWriter fw = new FileWriter(parameters.get("trecEvalOutputPath"), true);
+      BufferedWriter bw = new BufferedWriter(fw);
+
+      for (int i = 0; i < output.length; i++) {
+        bw.write(output[i]);
+        bw.newLine();
+      }
+      bw.close();
+      System.out.println("Successfully written");
+
+      // close the file
+//      fw.close();
     }
+    catch (Exception e) {
+      e.getStackTrace();
+    }
+
+//    for (int i = 0; i < output.length; i++) {
+//      writer.write(output[i]);
+//      System.out.println(output[i]);
+//    }
   }
 
   /**
