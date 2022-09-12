@@ -1,5 +1,0 @@
-indexPath=INPUT_DIR/index-cw09
-retrievalAlgorithm=UnrankedBoolean
-queryFilePath=TEST_DIR/HW1-Train-2.qry
-trecEvalOutputPath=OUTPUT_DIR/HW1-Train-2.teIn
-trecEvalOutputLength=1000

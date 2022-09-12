@@ -147,7 +147,6 @@ public class QryEval {
 
         while (q.docIteratorHasMatch (model)) {
           int docid = q.docIteratorGetMatch ();
-
           double score = ((QrySop) q).getScore (model);
           results.add (docid, score);
           q.docIteratorAdvancePast (docid);
@@ -193,8 +192,8 @@ public class QryEval {
         ScoreList results = processQuery(query, model);
         if (results != null) {
           int limit = Integer.parseInt(parameters.get("trecEvalOutputLength"));
-          exportResult(results, limit);
-//          printResults(qid, results);
+          exportResult(qid, results, limit);
+          printResults(qid, results);
           System.out.println();
         }
       }
@@ -221,7 +220,7 @@ public class QryEval {
   }
 
 
-  static void exportResult(ScoreList result, int limit) throws IOException {
+  static void exportResult(String qid, ScoreList result, int limit) throws IOException {
     PriorityQueue<Score> pq = new PriorityQueue<>((o1, o2) -> {
       if (Double.compare(o1.score, o2.score) == 0) {
         return o2.docid.compareTo(o1.docid);
@@ -240,12 +239,12 @@ public class QryEval {
     }
 
     int idx = 1;
-    String[] output = new String[limit];
-    System.out.println(pq.size());
+    int N = pq.size();
+    String[] output = new String[N];
     while (!pq.isEmpty()) {
       Score score = pq.poll();
-      String s = "22 " + "Q0 " + score.docid + " " + (limit - idx + 1) + " " + score.score + " 2022/09/11";
-      output[limit - idx] = s;
+      String s = qid + " Q0 " + score.docid + " " + (N - idx + 1) + " " + score.score + " 2022/09/11";
+      output[N - idx] = s;
       idx ++;
     }
 
@@ -259,18 +258,10 @@ public class QryEval {
       }
       bw.close();
       System.out.println("Successfully written");
-
-      // close the file
-//      fw.close();
     }
     catch (Exception e) {
       e.getStackTrace();
     }
-
-//    for (int i = 0; i < output.length; i++) {
-//      writer.write(output[i]);
-//      System.out.println(output[i]);
-//    }
   }
 
   /**

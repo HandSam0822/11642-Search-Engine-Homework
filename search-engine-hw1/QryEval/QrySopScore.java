@@ -34,10 +34,12 @@ public class QrySopScore extends QrySop {
 
     if (r instanceof RetrievalModelUnrankedBoolean) {
       return this.getScoreUnrankedBoolean (r);
-    } 
-
+    }
     //  STUDENTS::
     //  Add support for other retrieval models here.
+    else if (r instanceof RetrievalModelRankedBoolean) {
+      return this.getScoreRankedBoolean (r);
+    }
 
     else {
       throw new IllegalArgumentException
@@ -66,6 +68,16 @@ public class QrySopScore extends QrySop {
 
     QryIop q_0 = (QryIop) this.args.get (0);
     return 1.0;
+  }
+
+  public double getScoreRankedBoolean(RetrievalModel r) throws IOException {
+    if (!this.docIteratorHasMatchCache()) {
+      return 0.0;
+    } else {
+      InvList.DocPosting postings = ((QryIop)this.args.get(0)).docIteratorGetMatchPosting();
+      double score = postings.tf;
+      return score;
+    }
   }
 
   /**

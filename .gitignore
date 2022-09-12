@@ -1,4 +1,8 @@
 /search-engine-hw1/INPUT_DIR/
+/search-engine-hw1/OUTPUT_DIR/
+/search-engine-hw1/PARAM_DIR/
+/search-engine-hw1/TEST_DIR/
+/search-engine-hw1/TEIN_DIR/
 */out/
 *.DS_Store
 *.idea/

@@ -60,52 +60,36 @@ public class QrySopOr extends QrySop {
     //  method uses a more general solution.  OR takes the maximum
     //  of the scores from its children query nodes.
 
-    int docid = this.docIteratorGetMatch ();
 
-    for (int i=0; i<this.args.size(); i++) {
-
-      //  Java knows that the i'th query argument is a Qry object, but
-      //  it does not know what type.  We know that OR operators can
-      //  only have QrySop objects as children.  Cast the i'th query
-      //  argument to QrySop so that we can call its getScore method.
-
-      QrySop q_i = (QrySop) this.args.get(i);
-
-      //  If the i'th query argument matches this document, update the
-      //  score.
-
-      if (q_i.docIteratorHasMatch (r) &&
-          (q_i.docIteratorGetMatch () == docid)) {
-        return 1.0;
-      }
+    if (! this.docIteratorHasMatchCache()) {
+      return 0.0;
+    } else {
+      return 1.0;
     }
-
-    return 0.0;
   }
 
   private double getScoreRankedBoolean (RetrievalModel r) throws IOException {
-    double score = 0.0;
-    int docid = this.docIteratorGetMatch ();
-
-    for (int i=0; i<this.args.size(); i++) {
-
-      //  Java knows that the i'th query argument is a Qry object, but
-      //  it does not know what type.  We know that OR operators can
-      //  only have QrySop objects as children.  Cast the i'th query
-      //  argument to QrySop so that we can call its getScore method.
-
-      QrySop q_i = (QrySop) this.args.get(i);
-
-      //  If the i'th query argument matches this document, update the
-      //  score.
-
-      if (q_i.docIteratorHasMatch (r) &&
-              (q_i.docIteratorGetMatch () == docid)) {
-        score = Math.max (score, q_i.getScore (r));
+    if (!this.docIteratorHasMatchCache()) {
+      return 0.0;
+    } else {
+      // Because or operator just requires one of the terms is matched, when calculating
+      // score, must check whether this term is matched or not.
+      double maxScore = 0.0;
+      int docid = this.docIteratorGetMatch();
+      for (Qry q_i : this.args) {
+//              System.out.println(q_i.toString() + " docid: " + docid);
+        double tmpScore = 0.0;
+        if (q_i.docIteratorHasMatchCache()) {
+//                  System.out.println("has match cache");
+          if (docid == q_i.docIteratorGetMatch()) {
+//                      System.out.println("go to score operator");
+            tmpScore = ((QrySop)q_i).getScore(r);
+          }
+          maxScore = Math.max(maxScore, tmpScore);
+        }
       }
+      return maxScore;
     }
-
-    return score;
   }
 
 }
