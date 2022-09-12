@@ -190,12 +190,11 @@ public class QryEval {
         String qid = pair[0];
         String query = pair[1];
         ScoreList results = processQuery(query, model);
-        if (results != null) {
-          int limit = Integer.parseInt(parameters.get("trecEvalOutputLength"));
-          exportResult(qid, results, limit);
-          printResults(qid, results);
-          System.out.println();
-        }
+        int limit = Integer.parseInt(parameters.get("trecEvalOutputLength"));
+        exportResult(qid, results, limit);
+//          printResults(qid, results);
+        System.out.println();
+
       }
     } catch (IOException ex) {
       ex.printStackTrace();
@@ -221,47 +220,63 @@ public class QryEval {
 
 
   static void exportResult(String qid, ScoreList result, int limit) throws IOException {
-    PriorityQueue<Score> pq = new PriorityQueue<>((o1, o2) -> {
-      if (Double.compare(o1.score, o2.score) == 0) {
-        return o2.docid.compareTo(o1.docid);
-      }
-      return Double.compare(o1.score, o2.score);
-    });
-
-    for (int i = 0; i < result.size(); i++) {
-      String docId = Idx.getExternalDocid(result.getDocid(i));
-      double score = result.getDocidScore(i);
-      Score curr = new Score(docId, score);
-      pq.offer(curr);
-      if (pq.size() > limit) {
-        pq.poll();
-      }
-    }
-
-    int idx = 1;
-    int N = pq.size();
-    String[] output = new String[N];
-    while (!pq.isEmpty()) {
-      Score score = pq.poll();
-      String s = qid + " Q0 " + score.docid + " " + (N - idx + 1) + " " + score.score + " 2022/09/11";
-      output[N - idx] = s;
-      idx ++;
-    }
-
+    FileWriter fw = new FileWriter(parameters.get("trecEvalOutputPath"), true);
+    BufferedWriter bw = new BufferedWriter(fw);
+    String reference = " 2022/09/11";
     try {
-      FileWriter fw = new FileWriter(parameters.get("trecEvalOutputPath"), true);
-      BufferedWriter bw = new BufferedWriter(fw);
-
-      for (int i = 0; i < output.length; i++) {
-        bw.write(output[i]);
+      if (result.size() == 0) {
+        String s = qid + " Q0 NothingMatched" + " 1" + " 0" + reference;
+        bw.write(s);
         bw.newLine();
+      } else {
+        PriorityQueue<Score> pq = new PriorityQueue<>((o1, o2) -> {
+          if (Double.compare(o1.score, o2.score) == 0) {
+            return o2.docid.compareTo(o1.docid);
+          }
+          return Double.compare(o1.score, o2.score);
+        });
+
+        for (int i = 0; i < result.size(); i++) {
+          String docId;
+          Score curr;
+          double score = result.getDocidScore(i);
+
+          if (pq.size() < limit) {
+            docId = Idx.getExternalDocid(result.getDocid(i));
+            curr = new Score(docId, score);
+            pq.offer(curr);
+          } else {
+            if (score >= pq.peek().score) {
+              docId = Idx.getExternalDocid(result.getDocid(i));
+              curr = new Score(docId, score);
+              pq.offer(curr);
+              pq.poll();
+            }
+          }
+        }
+
+        int idx = 1;
+        int N = pq.size();
+        String[] output = new String[N];
+        while (!pq.isEmpty()) {
+          Score score = pq.poll();
+          String s = qid + " Q0 " + score.docid + " " + (N - idx + 1) + " " + score.score + reference;
+          output[N - idx] = s;
+          idx++;
+        }
+        for (int i = 0; i < output.length; i++) {
+          bw.write(output[i]);
+          bw.newLine();
+        }
       }
+
+    } catch (Exception e) {
+      e.getStackTrace();
+    } finally {
       bw.close();
       System.out.println("Successfully written");
     }
-    catch (Exception e) {
-      e.getStackTrace();
-    }
+
   }
 
   /**

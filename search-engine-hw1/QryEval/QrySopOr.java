@@ -77,7 +77,6 @@ public class QrySopOr extends QrySop {
       double maxScore = 0.0;
       int docid = this.docIteratorGetMatch();
       for (Qry q_i : this.args) {
-//              System.out.println(q_i.toString() + " docid: " + docid);
         double tmpScore = 0.0;
         if (q_i.docIteratorHasMatchCache()) {
 //                  System.out.println("has match cache");
