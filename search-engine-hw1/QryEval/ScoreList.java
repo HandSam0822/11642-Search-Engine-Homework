@@ -72,6 +72,10 @@ public class ScoreList {
     this.scores.get(n).score = score;
   }
 
+
+  public String getExternalDocid(int n) {
+    return this.scores.get(n).externalId;
+  }
   /**
    *  Get the size of the score list.
    *  @return The size of the posting list.
@@ -91,19 +95,10 @@ public class ScoreList {
 
     @Override
     public int compare(ScoreListEntry s1, ScoreListEntry s2) {
-      if (s1.score > s2.score)
-	return -1;
-      else
-	if (s1.score < s2.score)
-	  return 1;
-	else
-	  if (s1.docid > s2.docid)
-	    return 1;
-	  else
-	    if (s1.docid < s2.docid)
-	      return -1;
-	    else
-	      return 0;
+      if (Double.compare(s1.score, s2.score) == 0) {
+        return s1.externalId.compareTo(s2.externalId);
+      }
+      return (Double.compare(s2.score, s1.score));
     }
   }
 

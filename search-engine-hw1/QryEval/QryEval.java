@@ -192,7 +192,7 @@ public class QryEval {
         ScoreList results = processQuery(query, model);
         int limit = Integer.parseInt(parameters.get("trecEvalOutputLength"));
         exportResult(qid, results, limit);
-//          printResults(qid, results);
+//        printResults(qid, results);
         System.out.println();
 
       }
@@ -222,50 +222,67 @@ public class QryEval {
   static void exportResult(String qid, ScoreList result, int limit) throws IOException {
     FileWriter fw = new FileWriter(parameters.get("trecEvalOutputPath"), true);
     BufferedWriter bw = new BufferedWriter(fw);
-    String reference = " 2022/09/11";
+    String reference = " 2022/09/14";
     try {
       if (result.size() == 0) {
         String s = qid + " Q0 NothingMatched" + " 1" + " 0" + reference;
         bw.write(s);
         bw.newLine();
       } else {
-        PriorityQueue<Score> pq = new PriorityQueue<>((o1, o2) -> {
-          if (Double.compare(o1.score, o2.score) == 0) {
-            return o2.docid.compareTo(o1.docid);
-          }
-          return Double.compare(o1.score, o2.score);
-        });
+        /**
+         * Method1: using priority queue to pick top k element. Theoretically, its
+         * time complexity is O(N logK) is better than sorting the whole list O(N logN),
+         * when K < N, where N is the length of  score list and K is the maximum
+         * number of return value.
+         * However, both run time is similar on homework testing system,
+         * so I currently decide to simply sort the list and write out top K element. But still
+         * keep this code block in case we need it later.
+         */
 
-        for (int i = 0; i < result.size(); i++) {
-          String docId;
-          Score curr;
-          double score = result.getDocidScore(i);
+//        PriorityQueue<Score> pq = new PriorityQueue<>((o1, o2) -> {
+//          if (Double.compare(o1.score, o2.score) == 0) {
+//            return o2.docid.compareTo(o1.docid);
+//          }
+//          return Double.compare(o1.score, o2.score);
+//        });
+//
+//        for (int i = 0; i < result.size(); i++) {
+//          String docId;
+//          Score curr;
+//          double score = result.getDocidScore(i);
+//          docId = result.getExternalDocid(i);
+//          curr = new Score(docId, score);
+//          if (pq.size() < limit) {
+//            pq.offer(curr);
+//          } else {
+//            if (score > pq.peek().score || score == pq.peek().score && docId.compareTo(pq.peek().docid) < 0) {
+//              pq.offer(curr);
+//              pq.poll();
+//            }
+//          }
+//        }
+//
+//        int idx = 1;
+//        int N = pq.size();
+//        String[] output = new String[N];
+//        while (!pq.isEmpty()) {
+//          Score score = pq.poll();
+//          String s = qid + " Q0 " + score.docid + " " + (N - idx + 1) + " " + score.score + reference;
+//          output[N - idx] = s;
+//          idx++;
+//        }
+//        for (int i = 0; i < output.length; i++) {
+//          bw.write(output[i]);
+//          bw.newLine();
+//        }
 
-          if (pq.size() < limit) {
-            docId = Idx.getExternalDocid(result.getDocid(i));
-            curr = new Score(docId, score);
-            pq.offer(curr);
-          } else {
-            if (score >= pq.peek().score) {
-              docId = Idx.getExternalDocid(result.getDocid(i));
-              curr = new Score(docId, score);
-              pq.offer(curr);
-              pq.poll();
-            }
-          }
-        }
-
-        int idx = 1;
-        int N = pq.size();
-        String[] output = new String[N];
-        while (!pq.isEmpty()) {
-          Score score = pq.poll();
-          String s = qid + " Q0 " + score.docid + " " + (N - idx + 1) + " " + score.score + reference;
-          output[N - idx] = s;
-          idx++;
-        }
-        for (int i = 0; i < output.length; i++) {
-          bw.write(output[i]);
+        int size = limit < result.size() ? limit : result.size();
+        result.sort();
+        for (int i = 0; i < size; i++) {
+          String id = result.getExternalDocid(i);
+          Double sc = result.getDocidScore(i);
+          String s = qid + " Q0 " + id + " " + (i + 1) + " " + sc + reference;
+          bw.write(s);
           bw.newLine();
         }
       }
@@ -295,6 +312,7 @@ public class QryEval {
    * @throws IOException Error accessing the Lucene index.
    */
   static void printResults(String queryName, ScoreList result) throws IOException {
+
     if (result.size() < 1) {
       System.out.println("\tNo results.");
     } else {
@@ -303,6 +321,7 @@ public class QryEval {
             + result.getDocidScore(i));
       }
     }
+    System.out.println(result.size());
   }
 
   /**
