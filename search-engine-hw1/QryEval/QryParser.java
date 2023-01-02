@@ -305,7 +305,7 @@ public class QryParser {
     //  Recurse on subqueries.
 
     while (queryString.length() > 0) {
-	
+      System.out.println(queryString);
       //  STUDENTS:: (HW2)
       //  If the operator uses weighted query arguments (e.g., #WAND),
       //  each pass of this loop must handle "weight arg".  Handle the

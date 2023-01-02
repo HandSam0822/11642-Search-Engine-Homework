@@ -51,7 +51,6 @@ public class QryEval {
     }
 
     parameters = readParameterFile (args[0]);
-
     //  Open the index and initialize the retrieval model.
 
     Idx.open (parameters.get ("indexPath"));
@@ -90,6 +89,8 @@ public class QryEval {
 
     //  STUDENTS::  Add new retrieval models here.
     else if (modelString.equals("rankedboolean")) {
+      model = new RetrievalModelRankedBoolean();
+    } else if (modelString.equals("Indri")) {
       model = new RetrievalModelRankedBoolean();
     }
     else {
@@ -179,7 +180,6 @@ public class QryEval {
 
       while ((qLine = input.readLine()) != null) {
         printMemoryUsage(false);
-        System.out.println("Query " + qLine);
         String[] pair = qLine.split(":");
 
         if (pair.length != 2) {
