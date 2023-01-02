@@ -5,6 +5,7 @@
 */TEIN_DIR/
 */QryEval/
 */qryOut/
+*/out/
 */lucene-8.1.1/
 */out/
 *.DS_Store
